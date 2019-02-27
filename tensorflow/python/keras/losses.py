@@ -741,18 +741,14 @@ def mean_squared_logarithmic_error(y_true, y_pred):  # pylint: disable=missing-d
 
 
 def _maybe_convert_labels(y_true):
-  """Converts binary labels into -1/1."""
+  """Converts binary labels (ie. 0/1) into -1/1.
+
+   Please notice that no check is performed on the labels, hence if the input contains
+   values different from -1, 0 and 1, those values are kept as they are.
+   """
   are_zeros = math_ops.equal(y_true, 0)
-  are_ones = math_ops.equal(y_true, 1)
-  is_binary = math_ops.reduce_all(math_ops.logical_or(are_zeros, are_ones))
-
-  def _convert_binary_labels():
-    # Convert the binary labels to -1 or 1.
-    return 2. * y_true - 1.
-
-  updated_y_true = smart_cond.smart_cond(is_binary,
-                                         _convert_binary_labels, lambda: y_true)
-  return updated_y_true
+  ones_for_zeros = math_ops.cast(are_zeros, y_true.dtype)
+  return y_true - ones_for_zeros
 
 
 @keras_export('keras.metrics.squared_hinge', 'keras.losses.squared_hinge')
